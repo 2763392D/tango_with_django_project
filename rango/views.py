@@ -21,16 +21,22 @@ def index(request):
     visitor_cookie_handler(request, response)
     return response
 
+def get_server_side_cookie(request, cookie, default_val=None):
+    val = request.session.get(cookie)
+    if not val:
+        val = default_val
+    return val
+
 def visitor_cookie_handler(request, response):
-    visits = int(request.COOKIES.get('visits', '1'))
-    last_visit_cookie = request.COOKIES.get('last_visit', str(datetime.now()))
+    visits = int(get_server_side_cookie(request, 'visits', '1'))
+    last_visit_cookie = get_server_side_cookie(request,'last_visit', str(datetime.now()))
     last_visit_time = datetime.strptime(last_visit_cookie[:-7], '%Y-%m-%d %H:%M:%S')
     if (datetime.now() - last_visit_time).days > 0:
         visits = visits + 1
-        response.set_cookie('last_visit', str(datetime.now()))
+        request.session['last_visit']= str(datetime.now())
     else:
-        response.set_cookie('last_visit', last_visit_cookie)
-    response.set_cookie('visits', visits)
+        request.session['last_visit'] = last_visit_cookie
+    request.session['visits'] = visits
 
 
 def about(request):
